@@ -14,6 +14,7 @@
 - Nivel de detalle: alto cuando el tema lo merece, sin explicaciones básicas innecesarias
 - Cuándo confirmar: antes de acciones sensibles, externas o destructivas
 - Formato de entrega preferido: directo, práctico y accionable
+- Idioma de respuesta: responder en el mismo idioma que use Javi, inglés con inglés y español con español
 
 ## Contexto duradero de Javi
 

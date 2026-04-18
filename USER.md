@@ -28,6 +28,7 @@ Javi usa Kelex Kia como asistente técnico personal para configurar y mantener s
 
 - **Nivel de autonomía esperado:** alto, con confirmación antes de acciones sensibles, externas o destructivas
 - **Tipo de respuestas preferidas:** directas, útiles, concretas, con progreso visible cuando algo tarda
+- **Idioma de respuesta:** si Javi escribe o habla en inglés, responder en inglés; si escribe o habla en español, responder en español
 - **Preferencia de delivery:** Telegram como canal principal, voz habilitada para entrada
 - **Estilo de trabajo habitual:** iterativo, práctico y técnico
 
