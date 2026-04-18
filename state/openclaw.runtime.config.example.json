@@ -1,0 +1,139 @@
+{
+  "channels": {
+    "telegram": {
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "streaming": {
+        "mode": "partial"
+      },
+      "botToken": "<redacted>",
+      "enabled": true
+    }
+  },
+  "update": {
+    "channel": "stable",
+    "checkOnStart": false
+  },
+  "browser": {
+    "headless": true,
+    "noSandbox": true,
+    "defaultProfile": "openclaw"
+  },
+  "commands": {
+    "bash": true,
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true
+  },
+  "tools": {
+    "profile": "full",
+    "elevated": {
+      "enabled": true,
+      "allowFrom": {}
+    },
+    "media": {
+      "audio": {
+        "enabled": true,
+        "echoTranscript": false,
+        "models": [
+          {
+            "type": "cli",
+            "command": "/data/linuxbrew/.linuxbrew/bin/whisper-cli",
+            "args": [
+              "-m",
+              "/data/.openclaw/models/whisper/ggml-base.bin",
+              "-f",
+              "{{MediaPath}}",
+              "-otxt",
+              "-of",
+              "/tmp/openclaw-whisper"
+            ],
+            "timeoutSeconds": 120
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "name": "main"
+      }
+    ],
+    "defaults": {
+      "workspace": "/data/.openclaw/workspace",
+      "model": {
+        "primary": "openai-codex/gpt-5.4"
+      },
+      "models": {
+        "openai-codex/gpt-5.4": {}
+      },
+      "thinkingDefault": "low"
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    },
+    "auth": {
+      "mode": "token",
+      "token": "<redacted>",
+      "rateLimit": {
+        "maxAttempts": 10,
+        "windowMs": 60000,
+        "lockoutMs": 300000
+      }
+    },
+    "remote": {
+      "token": "<redacted>"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      },
+      "browser": {
+        "enabled": true
+      },
+      "openai": {
+        "enabled": true
+      }
+    }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": [
+        "/data/.openclaw/skills"
+      ]
+    },
+    "entries": {
+      "hhmail": {
+        "enabled": true
+      }
+    }
+  },
+  "models": {
+    "mode": "merge"
+  },
+  "hooks": {
+    "token": "<redacted>"
+  },
+  "meta": {
+    "lastTouchedAt": "2026-04-18T08:59:23.994Z",
+    "lastTouchedVersion": "2026.4.12"
+  },
+  "auth": {
+    "profiles": {
+      "openai-codex:xxavimr@gmail.com": {
+        "provider": "openai-codex",
+        "mode": "oauth"
+      }
+    }
+  }
+}
