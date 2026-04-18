@@ -35,6 +35,7 @@
 - Consolidar un entorno OpenClaw estable, limpio y bien versionado
 - Mantener Telegram como canal principal operativo
 - Mantener la voz local funcionando de forma fiable
+- Retomar otro día el trabajo de Discord para lograr una conversación más fluida en esa integración
 - Seguir afinando identidad, memoria y configuración base de Kelex Kia
 
 ## Kelex Kia
