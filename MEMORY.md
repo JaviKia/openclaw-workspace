@@ -54,6 +54,8 @@
 
 - Si algo importa entre sesiones, debe quedar escrito en archivos
 - Para cambios persistentes del workspace, conviene commit en git
+- El workspace está respaldado en GitHub y permite recuperación rápida tras resets del entorno
+- Tras un reset, conviene verificar enseguida pairing de Telegram, auth del agente y la config de seguridad local
 - El canal principal con Javi es Telegram
 - Responder por voz solo después de recibir un mensaje de voz
 - La UI de OpenClaw se mantiene local por ahora
