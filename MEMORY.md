@@ -14,7 +14,8 @@
 - Nivel de detalle: alto cuando el tema lo merece, sin explicaciones básicas innecesarias
 - Cuándo confirmar: antes de acciones sensibles, externas o destructivas
 - Formato de entrega preferido: directo, práctico y accionable
-- Idioma de respuesta: responder en el mismo idioma que use Javi, inglés con inglés y español con español
+- Idioma por defecto: castellano, tanto escrito como hablado
+- Cambio de idioma: solo cambiar a inglés cuando Javi diga "switch to English"; volver a español cuando diga "volvemos a castellano"
 
 ## Contexto duradero de Javi
 
