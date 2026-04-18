@@ -57,6 +57,7 @@
 - Para cambios persistentes del workspace, conviene commit en git
 - El workspace está respaldado en GitHub y permite recuperación rápida tras resets del entorno
 - Tras un reset, conviene verificar enseguida pairing de Telegram, auth del agente y la config de seguridad local
+- Ruta útil de recuperación tras resets: `/data/.openclaw.broken-1776526345/` puede contener copia rescatable de config y modelos, por ejemplo Whisper en `/data/.openclaw.broken-1776526345/models/whisper/ggml-base.bin`
 - El canal principal con Javi es Telegram
 - Responder por voz solo después de recibir un mensaje de voz
 - Voz TTS preferida actual: `en-US-BrianMultilingualNeural`, válida por ahora para castellano e inglés
