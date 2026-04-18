@@ -1,46 +1,85 @@
 ---
-summary: "Workspace template for TOOLS.md"
+summary: "Local operational notes for this OpenClaw environment"
 read_when:
-  - Bootstrapping a workspace manually
+  - Every session
 ---
 
 # TOOLS.md - Local Notes
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+## Configuración y secretos
 
-## What Goes Here
+- Config principal de OpenClaw: `/data/.openclaw/openclaw.json`
+- Config de auth de agente: `/data/.openclaw/agents/main/agent/auth-profiles.json`
+- Config de modelos de agente: `/data/.openclaw/agents/main/agent/models.json`
+- Backups de config de OpenClaw:
+  - `/data/.openclaw/openclaw.json.bak`
+  - `/data/.openclaw/openclaw.json.bak.*`
+- `.env` canónico: no definido aún
 
-Things like:
+Regla:
+- Documentar ubicación y propósito, no pegar secretos completos en este archivo.
 
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
+## Workspace y repo
 
-## Examples
+- Workspace principal: `/data/.openclaw/workspace`
+- Repo git local: `/data/.openclaw/workspace/.git`
+- Remote GitHub: `git@github.com:JaviKia/openclaw-workspace.git`
+- Rama principal: `main`
 
-```markdown
-### Cameras
+## CLI y utilidades
 
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
+- OpenClaw CLI: `/usr/local/bin/openclaw`
+- Git: `/usr/bin/git`
+- Homebrew: `/data/linuxbrew/.linuxbrew/bin/brew`
+- `ffmpeg`: pendiente de instalación/verificación
+- `whisper-cli`: pendiente de instalación/verificación
+- `whisper` (Python CLI): no instalado
 
-### SSH
+## Logs y rutas operativas
 
-- home-server → 192.168.1.100, user: admin
+- Logs de OpenClaw: `/data/.openclaw/logs`
+- Media entrante: `/data/.openclaw/media/inbound`
+- Estado interno de workspace: `/data/.openclaw/workspace/.openclaw/workspace-state.json`
+- Estado/offset de Telegram:
+  - `/data/.openclaw/telegram/update-offset-default.json`
+  - `/data/.openclaw/credentials/telegram-pairing.json`
+  - `/data/.openclaw/credentials/telegram-default-allowFrom.json`
 
-### TTS
+## Mensajería
 
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
-```
+- Plataforma principal: Telegram
+- Bot actual: `@KelexKiaBot`
+- Chat privado principal: `telegram:7947445599`
+- Usuario principal: `Javier Martinez (@javi2203)`
+- Política DM actual: pairing
 
-## Why Separate?
+## SSH
 
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
+- Clave GitHub de este VPS:
+  - privada: `~/.ssh/id_ed25519_github_openclaw`
+  - pública: `~/.ssh/id_ed25519_github_openclaw.pub`
+- Host configurado: `github.com`
+- Regla: usar SSH para push a GitHub, no tokens embebidos en comandos.
 
----
+## Reglas operativas del entorno
 
-Add whatever helps you do your job. This is your cheat sheet.
+- Para cambios persistentes en workspace, hacer commit en git.
+- Para mensajería, preferir herramientas nativas de OpenClaw antes que shell/curl.
+- Para Telegram, el canal principal de trabajo es DM.
+- Para voz:
+  - objetivo: transcripción local con Whisper
+  - fallback temporal: proveedor externo solo si hay credenciales adecuadas
+- Antes de dar una config por cerrada, verificar con logs, diff o prueba real.
+
+## Stack y runtime
+
+- Runtime principal: OpenClaw `main`
+- Modelo por defecto: `openai-codex/gpt-5.4`
+- Gateway local: `ws://127.0.0.1:18789`
+- Browser control local: `http://127.0.0.1:18791/`
+
+## Pendientes útiles
+
+- Terminar instalación de `whisper-cpp`
+- Verificar si `ffmpeg` queda disponible en PATH
+- Decidir si habrá `.env` canónico para secretos del entorno
