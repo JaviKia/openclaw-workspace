@@ -59,7 +59,8 @@
 - Tras un reset, conviene verificar enseguida pairing de Telegram, auth del agente y la config de seguridad local
 - Ruta útil de recuperación tras resets: `/data/.openclaw.broken-1776526345/` puede contener copia rescatable de config y modelos, por ejemplo Whisper en `/data/.openclaw.broken-1776526345/models/whisper/ggml-base.bin`
 - El canal principal con Javi es Telegram
-- Responder por voz solo después de recibir un mensaje de voz
+- Si Javi envía un mensaje de voz, responder también por voz y en el mismo idioma del mensaje
+- La cadena de voz quedó operativa: Whisper local + respuesta TTS por voz en Telegram
 - Voz TTS preferida actual: `en-US-BrianMultilingualNeural`, válida por ahora para castellano e inglés
 - La UI de OpenClaw se mantiene local por ahora
 - El `.env` canónico del entorno vive en `/data/.openclaw/.env`
