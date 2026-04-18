@@ -10,12 +10,14 @@ _Learn about the person you're helping. Update this as you go._
 
 - **Name:**
 - **What to call them:**
-- **Timezone:**
+- **Timezone:** Madrid/España
 - **Notes:**
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+- Quiere usar OpenClaw por Telegram, con soporte de voz.
+- Prefiere que le vaya enseñando progreso y logs cuando algo tarda.
+- Zona horaria confirmada: Madrid/España.
 
 ---
 
