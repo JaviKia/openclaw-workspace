@@ -6,7 +6,6 @@
       "streaming": {
         "mode": "partial"
       },
-      "botToken": "<redacted>",
       "enabled": true
     }
   },
