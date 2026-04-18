@@ -11,6 +11,7 @@ read_when:
 - Config principal de OpenClaw: `/data/.openclaw/openclaw.json`
 - Config de auth de agente: `/data/.openclaw/agents/main/agent/auth-profiles.json`
 - Config de modelos de agente: `/data/.openclaw/agents/main/agent/models.json`
+- Backup local pre-update: `/data/.openclaw/openclaw.json.pre-update.bak`
 - Backups de config de OpenClaw:
   - `/data/.openclaw/openclaw.json.bak`
   - `/data/.openclaw/openclaw.json.bak.*`
@@ -31,15 +32,20 @@ Regla:
 - OpenClaw CLI: `/usr/local/bin/openclaw`
 - Git: `/usr/bin/git`
 - Homebrew: `/data/linuxbrew/.linuxbrew/bin/brew`
-- `ffmpeg`: pendiente de instalación/verificación
-- `whisper-cli`: pendiente de instalación/verificación
+- `ffmpeg`: `/data/linuxbrew/.linuxbrew/bin/ffmpeg`
+- `ffprobe`: `/data/linuxbrew/.linuxbrew/bin/ffprobe`
+- `whisper-cli`: `/data/linuxbrew/.linuxbrew/bin/whisper-cli`
 - `whisper` (Python CLI): no instalado
+
+## Modelos locales
+
+- Whisper model dir: `/data/.openclaw/models/whisper`
+- Modelo activo: `/data/.openclaw/models/whisper/ggml-base.bin`
 
 ## Logs y rutas operativas
 
 - Logs de OpenClaw: `/data/.openclaw/logs`
 - Media entrante: `/data/.openclaw/media/inbound`
-- Estado interno de workspace: `/data/.openclaw/workspace/.openclaw/workspace-state.json`
 - Estado/offset de Telegram:
   - `/data/.openclaw/telegram/update-offset-default.json`
   - `/data/.openclaw/credentials/telegram-pairing.json`
@@ -67,8 +73,8 @@ Regla:
 - Para mensajería, preferir herramientas nativas de OpenClaw antes que shell/curl.
 - Para Telegram, el canal principal de trabajo es DM.
 - Para voz:
-  - objetivo: transcripción local con Whisper
-  - fallback temporal: proveedor externo solo si hay credenciales adecuadas
+  - transcripción local activa con `whisper-cpp`
+  - modelo actual `ggml-base.bin`
 - Antes de dar una config por cerrada, verificar con logs, diff o prueba real.
 
 ## Stack y runtime
@@ -80,6 +86,6 @@ Regla:
 
 ## Pendientes útiles
 
-- Terminar instalación de `whisper-cpp`
-- Verificar si `ffmpeg` queda disponible en PATH
 - Decidir si habrá `.env` canónico para secretos del entorno
+- Si la UI deja de ser local, configurar `gateway.trustedProxies`
+- Valorar respuesta por voz, no solo entrada por voz
