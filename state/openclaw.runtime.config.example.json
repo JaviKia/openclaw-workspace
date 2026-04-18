@@ -134,5 +134,16 @@
         "mode": "oauth"
       }
     }
+  },
+  "messages": {
+    "tts": {
+      "auto": "inbound",
+      "provider": "microsoft",
+      "providers": {
+        "microsoft": {
+          "voice": "en-US-AvaMultilingualNeural"
+        }
+      }
+    }
   }
 }

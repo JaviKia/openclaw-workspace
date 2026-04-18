@@ -75,6 +75,9 @@ Regla:
 - Para voz:
   - transcripción local activa con `whisper-cpp`
   - modelo actual `ggml-base.bin`
+  - auto-TTS activado en modo `inbound`
+  - proveedor TTS configurado: `microsoft`
+  - voz configurada: `en-US-AvaMultilingualNeural`
 - Antes de dar una config por cerrada, verificar con logs, diff o prueba real.
 
 ## Stack y runtime
