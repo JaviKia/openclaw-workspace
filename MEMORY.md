@@ -59,5 +59,6 @@
 - Tras un reset, conviene verificar enseguida pairing de Telegram, auth del agente y la config de seguridad local
 - El canal principal con Javi es Telegram
 - Responder por voz solo después de recibir un mensaje de voz
+- Voz TTS preferida actual: `en-US-BrianMultilingualNeural`, válida por ahora para castellano e inglés
 - La UI de OpenClaw se mantiene local por ahora
 - El `.env` canónico del entorno vive en `/data/.openclaw/.env`
