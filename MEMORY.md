@@ -54,3 +54,4 @@
 - Para cambios persistentes del workspace, conviene commit en git
 - El canal principal con Javi es Telegram
 - La UI de OpenClaw se mantiene local por ahora
+- El `.env` canónico del entorno vive en `/data/.openclaw/.env`

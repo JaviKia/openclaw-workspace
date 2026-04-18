@@ -15,7 +15,7 @@ read_when:
 - Backups de config de OpenClaw:
   - `/data/.openclaw/openclaw.json.bak`
   - `/data/.openclaw/openclaw.json.bak.*`
-- `.env` canónico: no definido aún
+- `.env` canónico: `/data/.openclaw/.env`
 
 Regla:
 - Documentar ubicación y propósito, no pegar secretos completos en este archivo.
