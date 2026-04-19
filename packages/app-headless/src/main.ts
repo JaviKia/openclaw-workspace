@@ -40,6 +40,13 @@ let resolveAudioEnded: (() => void) | undefined;
 const audioEnded = new Promise<void>((resolve) => {
   resolveAudioEnded = resolve;
 });
+let resolveSettledListening: (() => void) | undefined;
+let waitingForSettledListening = false;
+let shouldWaitForSettledListening = false;
+let hasLeftListening = false;
+const settledListening = new Promise<void>((resolve) => {
+  resolveSettledListening = resolve;
+});
 
 audioInput.onFrame((frame) => {
   capturedFrames += 1;
@@ -66,6 +73,17 @@ audioInput.onEnded?.(() => {
 
 bus.subscribe(async (event) => {
   console.log(`[runtime] ${event.type}`, sanitizeEventForLog(event));
+
+  if (event.type === "state.changed") {
+    if (event.state !== "LISTENING") {
+      hasLeftListening = true;
+    }
+    if (waitingForSettledListening && hasLeftListening && event.state === "LISTENING") {
+      waitingForSettledListening = false;
+      resolveSettledListening?.();
+    }
+  }
+
   if (event.type === "stt.final") {
     await orchestrator.handleEvent(event);
     return;
@@ -97,6 +115,7 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
   } else {
     await audioInput.start();
     if (backend === "ffmpeg" && inputFormat === "file") {
+      shouldWaitForSettledListening = true;
       await Promise.race([
         audioEnded,
         new Promise((resolve) => setTimeout(resolve, Number(process.env.OPENCLAW_RUNTIME_AUDIO_TEST_MS ?? 4000)))
@@ -110,6 +129,7 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
   console.log(`[audio] captured frames: ${capturedFrames}`);
 } else {
   const turnId = crypto.randomUUID();
+  shouldWaitForSettledListening = true;
   await orchestrator.handleEvent({ type: "speech.started", ts: Date.now() });
   await orchestrator.handleEvent({ type: "stt.partial", turnId, text: "hola", ts: Date.now() });
   await orchestrator.handleEvent({ type: "speech.ended", ts: Date.now(), silenceMs: 850 });
@@ -129,6 +149,14 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
     await orchestrator.handleEvent({ type: "backend.token", turnId, token: "qué tal.", ts: Date.now() });
     await orchestrator.handleEvent({ type: "backend.completed", turnId, text: "Hola Javi, qué tal.", ts: Date.now() });
   }
+}
+
+if (shouldWaitForSettledListening && orchestrator.getState() !== "LISTENING") {
+  waitingForSettledListening = true;
+  await Promise.race([
+    settledListening,
+    new Promise((resolve) => setTimeout(resolve, Number(process.env.OPENCLAW_RUNTIME_FINAL_WAIT_MS ?? 10000)))
+  ]);
 }
 
 console.log(`[runtime] final state: ${orchestrator.getState()}`);
