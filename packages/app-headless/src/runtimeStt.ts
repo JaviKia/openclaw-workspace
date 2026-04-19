@@ -15,7 +15,10 @@ export function createRuntimeStt(bus: EventBus): SttPort {
         .split(" ")
         .map((value) => value.trim())
         .filter(Boolean),
-      textReplacements: parseTextReplacements(process.env.OPENCLAW_RUNTIME_STT_TEXT_REPLACEMENTS ?? "")
+      textReplacements: mergeTextReplacements(
+        getDefaultTextReplacements(),
+        parseTextReplacements(process.env.OPENCLAW_RUNTIME_STT_TEXT_REPLACEMENTS ?? "")
+      )
     });
   }
   return new StubSttPort();
@@ -34,4 +37,26 @@ function parseTextReplacements(input: string): Array<{ from: string; to: string 
       };
     })
     .filter((entry) => entry.from.length > 0);
+}
+
+function getDefaultTextReplacements(): Array<{ from: string; to: string }> {
+  return [
+    { from: "Ranta MTTS", to: "runtime TTS" },
+    { from: "Ranta M T T S", to: "runtime TTS" },
+    { from: "Ranta Emeteties", to: "runtime TTS" }
+  ];
+}
+
+function mergeTextReplacements(
+  base: Array<{ from: string; to: string }>,
+  overrides: Array<{ from: string; to: string }>
+): Array<{ from: string; to: string }> {
+  const merged = new Map<string, string>();
+  for (const item of base) {
+    merged.set(item.from, item.to);
+  }
+  for (const item of overrides) {
+    merged.set(item.from, item.to);
+  }
+  return Array.from(merged.entries()).map(([from, to]) => ({ from, to }));
 }
