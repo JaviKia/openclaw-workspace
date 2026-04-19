@@ -56,7 +56,7 @@ export type RuntimeEvent =
   | { type: "stt.final"; turnId: string; text: string; ts: number; language?: string }
   | { type: "backend.token"; turnId: string; token: string; ts: number }
   | { type: "backend.completed"; turnId: string; text: string; ts: number }
-  | { type: "tts.audio.chunk"; turnId: string; chunkId: string; ts: number }
+  | { type: "tts.audio.chunk"; turnId: string; chunkId: string; ts: number; chunk: TtsAudioChunk }
   | { type: "playback.started"; turnId: string; ts: number }
   | { type: "playback.stopped"; turnId: string; ts: number; reason: string }
   | { type: "state.changed"; state: ConversationState; ts: number }

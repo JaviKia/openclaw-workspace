@@ -50,12 +50,17 @@ audioInput.onFrame((frame) => {
 });
 
 bus.subscribe(async (event) => {
-  console.log(`[runtime] ${event.type}`, event);
+  console.log(`[runtime] ${event.type}`, sanitizeEventForLog(event));
   if (event.type === "stt.final") {
     await orchestrator.handleEvent(event);
     return;
   }
-  if (event.type === "speech.started" || event.type === "speech.ended" || event.type === "speech.interrupted") {
+  if (
+    event.type === "speech.started" ||
+    event.type === "speech.ended" ||
+    event.type === "speech.interrupted" ||
+    event.type === "tts.audio.chunk"
+  ) {
     await orchestrator.handleEvent(event);
   }
 });
@@ -80,3 +85,14 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
 }
 
 console.log(`[runtime] final state: ${orchestrator.getState()}`);
+
+function sanitizeEventForLog(event: Parameters<typeof bus.subscribe>[0] extends (arg: infer T) => unknown ? T : never) {
+  if (event.type !== "tts.audio.chunk") return event;
+  return {
+    ...event,
+    chunk: {
+      ...event.chunk,
+      audio: `<${event.chunk.audio.length} bytes>`
+    }
+  };
+}

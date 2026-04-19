@@ -44,7 +44,8 @@ export class MicrosoftTtsProvider implements TtsPort {
       type: "tts.audio.chunk",
       turnId: chunk.turnId,
       chunkId: chunk.chunkId,
-      ts: Date.now()
+      ts: Date.now(),
+      chunk: audioChunk
     });
     await this.writeDebugAudio(audioChunk);
   }

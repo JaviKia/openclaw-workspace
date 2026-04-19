@@ -126,12 +126,17 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
         }
         break;
       }
+      case "tts.audio.chunk": {
+        await this.deps.playback?.play(event.chunk);
+        break;
+      }
       case "backend.completed": {
         if (this.deps.composer && this.deps.tts) {
           for (const chunk of this.deps.composer.flush(event.turnId)) {
             await this.deps.tts.speak(chunk);
           }
         }
+        await this.deps.playback?.flush();
         await this.transition("LISTENING");
         this.activeTurnId = undefined;
         break;

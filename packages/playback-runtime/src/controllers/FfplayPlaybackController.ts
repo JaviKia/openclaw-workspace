@@ -12,6 +12,7 @@ export class FfplayPlaybackController implements PlaybackPort {
   private readonly ffplayPath: string;
   private currentProcess?: ChildProcess;
   private currentTempDir?: string;
+  private currentExitPromise?: Promise<void>;
 
   constructor(options: FfplayPlaybackControllerOptions = {}) {
     this.ffplayPath = options.ffplayPath ?? "/data/linuxbrew/.linuxbrew/bin/ffplay";
@@ -42,18 +43,27 @@ export class FfplayPlaybackController implements PlaybackPort {
       proc.once("error", reject);
       proc.once("spawn", () => resolve());
     });
+    this.currentExitPromise = new Promise<void>((resolve) => {
+      this.currentProcess?.once("exit", () => resolve());
+      this.currentProcess?.once("close", () => resolve());
+      this.currentProcess?.once("error", () => resolve());
+    });
   }
 
   async stop(_reason: "interrupt" | "cancel" | "error" | "completed"): Promise<void> {
     if (this.currentProcess && !this.currentProcess.killed) {
       this.currentProcess.kill("SIGKILL");
     }
+    await this.currentExitPromise?.catch(() => undefined);
     this.currentProcess = undefined;
+    this.currentExitPromise = undefined;
     if (this.currentTempDir) {
       await rm(this.currentTempDir, { recursive: true, force: true });
       this.currentTempDir = undefined;
     }
   }
 
-  async flush(): Promise<void> {}
+  async flush(): Promise<void> {
+    await this.currentExitPromise?.catch(() => undefined);
+  }
 }
