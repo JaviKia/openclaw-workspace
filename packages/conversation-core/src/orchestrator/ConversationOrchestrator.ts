@@ -27,6 +27,8 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
   private activeSessionId?: string;
   private activeTurnId?: string;
   private lastInterruptAt?: number;
+  private readonly preRollFrames: AudioFrame[] = [];
+  private readonly preRollFrameLimit = 5;
   private readonly sessions: SessionManager;
   private readonly turnPolicy: TurnPolicy;
 
@@ -50,6 +52,7 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
   }
 
   async handleAudioFrame(frame: AudioFrame): Promise<void> {
+    this.pushPreRollFrame(frame);
     if (!this.activeTurnId || this.state !== "USER_SPEAKING") return;
     await this.deps.stt?.pushAudio(this.activeTurnId, frame);
   }
@@ -74,8 +77,13 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
         this.sessions.addTurn(this.activeSessionId, turn);
         await this.deps.stt?.startTurn({
           turnId: this.activeTurnId,
-          sessionId: this.activeSessionId
+          sessionId: this.activeSessionId,
+          language: event.language
         });
+        for (const bufferedFrame of this.preRollFrames) {
+          await this.deps.stt?.pushAudio(this.activeTurnId, bufferedFrame);
+        }
+        this.preRollFrames.length = 0;
         await this.transition("USER_SPEAKING");
         break;
       }
@@ -174,6 +182,16 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
       state: next,
       ts: Date.now()
     });
+  }
+
+  private pushPreRollFrame(frame: AudioFrame): void {
+    this.preRollFrames.push({
+      ...frame,
+      pcm: Buffer.from(frame.pcm)
+    });
+    if (this.preRollFrames.length > this.preRollFrameLimit) {
+      this.preRollFrames.shift();
+    }
   }
 
   private async interruptCurrentTurn(ts: number): Promise<void> {

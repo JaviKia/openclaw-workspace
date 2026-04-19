@@ -49,7 +49,7 @@ export interface TtsAudioChunk {
 }
 
 export type RuntimeEvent =
-  | { type: "speech.started"; ts: number }
+  | { type: "speech.started"; ts: number; language?: string }
   | { type: "speech.ended"; ts: number; silenceMs: number }
   | { type: "speech.interrupted"; ts: number }
   | { type: "stt.partial"; turnId: string; text: string; ts: number }

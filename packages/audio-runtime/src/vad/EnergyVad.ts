@@ -5,6 +5,7 @@ export interface EnergyVadOptions {
   startThreshold?: number;
   endThreshold?: number;
   endSilenceMs?: number;
+  languageHint?: string;
 }
 
 export class EnergyVad implements VadPort {
@@ -12,6 +13,7 @@ export class EnergyVad implements VadPort {
   private readonly startThreshold: number;
   private readonly endThreshold: number;
   private readonly endSilenceMs: number;
+  private readonly languageHint?: string;
   private speaking = false;
   private lastAboveThresholdAt = 0;
 
@@ -20,6 +22,7 @@ export class EnergyVad implements VadPort {
     this.startThreshold = options.startThreshold ?? 0.015;
     this.endThreshold = options.endThreshold ?? 0.008;
     this.endSilenceMs = options.endSilenceMs ?? 800;
+    this.languageHint = options.languageHint;
   }
 
   pushFrame(frame: AudioFrame): void {
@@ -29,7 +32,7 @@ export class EnergyVad implements VadPort {
     if (!this.speaking && energy >= this.startThreshold) {
       this.speaking = true;
       this.lastAboveThresholdAt = now;
-      void this.bus.publish({ type: "speech.started", ts: now });
+      void this.bus.publish({ type: "speech.started", ts: now, language: this.languageHint });
       return;
     }
 

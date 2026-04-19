@@ -59,10 +59,16 @@ export async function getRuntimeAudioDiagnostics() {
 }
 
 export function createRuntimeVad(bus: EventBus): VadPort {
+  const languageHint = process.env.OPENCLAW_RUNTIME_STT_LANG_HINT
+    ?? (process.env.OPENCLAW_RUNTIME_STT_LANG && process.env.OPENCLAW_RUNTIME_STT_LANG !== "auto"
+      ? process.env.OPENCLAW_RUNTIME_STT_LANG
+      : undefined);
+
   return new EnergyVad({
     bus,
     startThreshold: Number(process.env.OPENCLAW_RUNTIME_VAD_START ?? 0.015),
     endThreshold: Number(process.env.OPENCLAW_RUNTIME_VAD_END ?? 0.008),
-    endSilenceMs: Number(process.env.OPENCLAW_RUNTIME_VAD_SILENCE_MS ?? 800)
+    endSilenceMs: Number(process.env.OPENCLAW_RUNTIME_VAD_SILENCE_MS ?? 800),
+    languageHint
   });
 }
