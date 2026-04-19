@@ -1,6 +1,7 @@
 import type {
   AudioFrame,
   BackendPort,
+  EventBus,
   PlaybackPort,
   ResponseComposerPort,
   SpeakableChunk,
@@ -23,6 +24,31 @@ export class StubBackendPort implements BackendPort {
 
   async cancelResponse(sessionId: string, turnId: string): Promise<void> {
     console.log("[stub-backend] cancelResponse", { sessionId, turnId });
+  }
+}
+
+export class EchoBackendPort implements BackendPort {
+  constructor(private readonly bus: EventBus) {}
+
+  async sendUserTurn(req: { sessionId: string; turnId: string; text: string }): Promise<void> {
+    console.log("[echo-backend] sendUserTurn", req);
+    const text = `Entendido: ${req.text}`;
+    await this.bus.publish({
+      type: "backend.token",
+      turnId: req.turnId,
+      token: text,
+      ts: Date.now()
+    });
+    await this.bus.publish({
+      type: "backend.completed",
+      turnId: req.turnId,
+      text,
+      ts: Date.now()
+    });
+  }
+
+  async cancelResponse(sessionId: string, turnId: string): Promise<void> {
+    console.log("[echo-backend] cancelResponse", { sessionId, turnId });
   }
 }
 

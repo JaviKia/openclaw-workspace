@@ -29,7 +29,7 @@ const orchestrator = new BasicConversationOrchestrator({
   bus,
   config,
   stt: createRuntimeStt(bus),
-  backend: createRuntimeBackend(),
+  backend: createRuntimeBackend(bus),
   composer: new StubResponseComposer(),
   tts: createRuntimeTts(bus),
   playback
@@ -74,7 +74,9 @@ bus.subscribe(async (event) => {
     event.type === "speech.started" ||
     event.type === "speech.ended" ||
     event.type === "speech.interrupted" ||
-    event.type === "tts.audio.chunk"
+    event.type === "tts.audio.chunk" ||
+    event.type === "backend.token" ||
+    event.type === "backend.completed"
   ) {
     await orchestrator.handleEvent(event);
   }
