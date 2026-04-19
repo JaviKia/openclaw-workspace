@@ -12,7 +12,8 @@
   "dependencies": {
     "@kelex/backend-openclaw": "0.1.0",
     "@kelex/conversation-core": "0.1.0",
-    "@kelex/stt-runtime": "0.1.0"
+    "@kelex/stt-runtime": "0.1.0",
+    "@kelex/tts-runtime": "0.1.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

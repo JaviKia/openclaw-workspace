@@ -5,10 +5,10 @@ import {
 } from "@kelex/conversation-core";
 import { createRuntimeBackend } from "./runtimeBackend.js";
 import { createRuntimeStt } from "./runtimeStt.js";
+import { createRuntimeTts } from "./runtimeTts.js";
 import {
   StubPlaybackPort,
-  StubResponseComposer,
-  StubTtsPort
+  StubResponseComposer
 } from "./stubs.js";
 
 const config: RuntimeConfig = {
@@ -29,7 +29,7 @@ const orchestrator = new BasicConversationOrchestrator({
   stt: createRuntimeStt(bus),
   backend: createRuntimeBackend(),
   composer: new StubResponseComposer(),
-  tts: new StubTtsPort(),
+  tts: createRuntimeTts(bus),
   playback: new StubPlaybackPort()
 });
 
