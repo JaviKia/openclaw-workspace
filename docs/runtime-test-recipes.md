@@ -6,8 +6,22 @@ Pruebas guardadas para el runtime de voz Level 1.
 
 - `fixtures/runtime-audio/sample-1-es.mp3`
 - `fixtures/runtime-audio/sample-2-es.mp3`
+- `fixtures/runtime-audio/sample-3-es.mp3`
+- `fixtures/runtime-audio/sample-4-es.mp3`
+- `fixtures/runtime-audio/sample-5-es.mp3`
+- `fixtures/runtime-audio/sample-6-es.mp3`
+- `fixtures/runtime-audio/sample-7-es.mp3`
+- `fixtures/runtime-audio/sample-8-es.mp3`
+- `fixtures/runtime-audio/sample-9-es.mp3`
+- `fixtures/runtime-audio/sample-10-es.mp3`
 
 ## Comandos
+
+### Generar o regenerar las muestras sintéticas
+
+```bash
+node scripts/runtime-tests/generate-samples.mjs
+```
 
 ### Verificar que las muestras existen
 
