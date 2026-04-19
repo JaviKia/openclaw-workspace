@@ -1,8 +1,9 @@
-import { EnergyVad, FfmpegAudioInput, getPulseAudioDiagnostics, PulseAudioInput } from "@kelex/audio-runtime";
+import { AlsaAudioInput, EnergyVad, FfmpegAudioInput, getAlsaDiagnostics, getPulseAudioDiagnostics, PulseAudioInput } from "@kelex/audio-runtime";
 import type { AudioFrame, AudioInputPort, EventBus, VadPort } from "@kelex/conversation-core";
 
 class NullAudioInput implements AudioInputPort {
   onFrame(_cb: (frame: AudioFrame) => void): void {}
+  onEnded(_cb: () => void): void {}
   async start(): Promise<void> {}
   async stop(): Promise<void> {}
 }
@@ -10,6 +11,17 @@ class NullAudioInput implements AudioInputPort {
 export function createRuntimeAudioInput(): AudioInputPort {
   if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
     const backend = process.env.OPENCLAW_RUNTIME_AUDIO_BACKEND ?? "pulse";
+    if (backend === "alsa") {
+      return new AlsaAudioInput({
+        arecordPath: process.env.OPENCLAW_RUNTIME_ARECORD_BIN ?? "arecord",
+        device: process.env.OPENCLAW_RUNTIME_ALSA_DEVICE ?? "default",
+        sampleRate: Number(process.env.OPENCLAW_RUNTIME_AUDIO_RATE ?? 16000),
+        channels: Number(process.env.OPENCLAW_RUNTIME_AUDIO_CHANNELS ?? 1),
+        onDeviceResolved: (device) => {
+          console.log("[audio] alsa device", device);
+        }
+      });
+    }
     if (backend === "ffmpeg") {
       return new FfmpegAudioInput({
         ffmpegPath: process.env.OPENCLAW_RUNTIME_FFMPEG_BIN ?? "/data/linuxbrew/.linuxbrew/bin/ffmpeg",
@@ -39,7 +51,11 @@ export function createRuntimeAudioInput(): AudioInputPort {
 }
 
 export async function getRuntimeAudioDiagnostics() {
-  return getPulseAudioDiagnostics(process.env.OPENCLAW_RUNTIME_PACTL_BIN ?? "pactl");
+  const [pulse, alsa] = await Promise.all([
+    getPulseAudioDiagnostics(process.env.OPENCLAW_RUNTIME_PACTL_BIN ?? "pactl"),
+    getAlsaDiagnostics(process.env.OPENCLAW_RUNTIME_ARECORD_BIN ?? "arecord")
+  ]);
+  return { pulse, alsa };
 }
 
 export function createRuntimeVad(bus: EventBus): VadPort {

@@ -4,6 +4,7 @@ export interface AudioInputPort {
   start(): Promise<void>;
   stop(): Promise<void>;
   onFrame(cb: (frame: AudioFrame) => void): void;
+  onEnded?(cb: () => void): void;
 }
 
 export interface VadPort {

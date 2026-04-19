@@ -10,6 +10,7 @@ export interface FfmpegAudioInputOptions {
   channels?: number;
   frameBytes?: number;
   onInputResolved?: (input: { format: "pulse" | "file"; target: string }) => void;
+  onEnded?: () => void;
 }
 
 export class FfmpegAudioInput implements AudioInputPort {
@@ -21,6 +22,7 @@ export class FfmpegAudioInput implements AudioInputPort {
   private readonly channels: number;
   private readonly frameBytes: number;
   private readonly onInputResolved?: (input: { format: "pulse" | "file"; target: string }) => void;
+  private onEndedHandler?: () => void;
   private process?: ChildProcess;
   private onFrameHandler?: (frame: AudioFrame) => void;
   private pending = Buffer.alloc(0);
@@ -34,10 +36,15 @@ export class FfmpegAudioInput implements AudioInputPort {
     this.channels = options.channels ?? 1;
     this.frameBytes = options.frameBytes ?? 3200;
     this.onInputResolved = options.onInputResolved;
+    this.onEndedHandler = options.onEnded;
   }
 
   onFrame(cb: (frame: AudioFrame) => void): void {
     this.onFrameHandler = cb;
+  }
+
+  onEnded(cb: () => void): void {
+    this.onEndedHandler = cb;
   }
 
   async start(): Promise<void> {
@@ -60,6 +67,12 @@ export class FfmpegAudioInput implements AudioInputPort {
           channels: this.channels
         });
       }
+    });
+
+    this.process.once("close", () => {
+      this.process = undefined;
+      this.pending = Buffer.alloc(0);
+      this.onEndedHandler?.();
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -88,10 +101,10 @@ export class FfmpegAudioInput implements AudioInputPort {
         "-loglevel",
         "error",
         "-re",
-        "-stream_loop",
-        "-1",
         "-i",
         this.inputPath,
+        "-af",
+        "apad=pad_dur=1",
         "-f",
         "s16le",
         "-ac",
