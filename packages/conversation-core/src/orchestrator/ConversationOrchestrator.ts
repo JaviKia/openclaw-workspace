@@ -26,6 +26,7 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
   private state: ConversationState = "IDLE";
   private activeSessionId?: string;
   private activeTurnId?: string;
+  private lastInterruptAt?: number;
   private readonly sessions: SessionManager;
   private readonly turnPolicy: TurnPolicy;
 
@@ -61,6 +62,9 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
     switch (event.type) {
       case "speech.started": {
         if (!this.activeSessionId) return;
+        if (this.state === "ASSISTANT_SPEAKING" || this.state === "THINKING") {
+          await this.interruptCurrentTurn(event.ts);
+        }
         this.activeTurnId = crypto.randomUUID();
         const turn: TurnContext = {
           turnId: this.activeTurnId,
@@ -77,7 +81,9 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
       }
       case "stt.partial": {
         if (!this.activeSessionId) return;
-        this.sessions.updateTurn(this.activeSessionId, this.resolveTurnId(event.turnId), {
+        const turnId = this.resolveTurnId(event.turnId);
+        this.activeTurnId = turnId;
+        this.sessions.updateTurn(this.activeSessionId, turnId, {
           transcriptPartial: event.text
         });
         break;
@@ -92,6 +98,7 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
       case "stt.final": {
         if (!this.activeSessionId) return;
         const turnId = this.resolveTurnId(event.turnId);
+        this.activeTurnId = turnId;
         this.sessions.updateTurn(this.activeSessionId, turnId, {
           transcriptFinal: event.text,
           endedAt: event.ts
@@ -105,6 +112,9 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
         break;
       }
       case "backend.token": {
+        if (event.turnId !== this.activeTurnId) {
+          break;
+        }
         if (this.state === "THINKING") {
           await this.transition("ASSISTANT_SPEAKING");
         }
@@ -116,21 +126,20 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
         break;
       }
       case "speech.interrupted": {
-        if (this.state === "ASSISTANT_SPEAKING" && this.turnPolicy.shouldInterrupt(undefined, event.ts)) {
-          await this.transition("INTERRUPTED");
-          if (this.activeSessionId && this.activeTurnId) {
-            await this.deps.backend?.cancelResponse(this.activeSessionId, this.activeTurnId);
-            await this.deps.tts?.cancel(this.activeTurnId);
-          }
-          await this.deps.playback?.stop("interrupt");
-        }
+        await this.interruptCurrentTurn(event.ts);
         break;
       }
       case "tts.audio.chunk": {
+        if (event.turnId !== this.activeTurnId) {
+          break;
+        }
         await this.deps.playback?.play(event.chunk);
         break;
       }
       case "backend.completed": {
+        if (event.turnId !== this.activeTurnId) {
+          break;
+        }
         if (this.deps.composer && this.deps.tts) {
           for (const chunk of this.deps.composer.flush(event.turnId)) {
             await this.deps.tts.speak(chunk);
@@ -165,5 +174,22 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
       state: next,
       ts: Date.now()
     });
+  }
+
+  private async interruptCurrentTurn(ts: number): Promise<void> {
+    if (!(this.state === "ASSISTANT_SPEAKING" || this.state === "THINKING" || this.state === "INTERRUPTED")) {
+      return;
+    }
+    if (!this.turnPolicy.shouldInterrupt(this.lastInterruptAt, ts)) {
+      return;
+    }
+    this.lastInterruptAt = ts;
+    await this.transition("INTERRUPTED");
+    if (this.activeSessionId && this.activeTurnId) {
+      await this.deps.backend?.cancelResponse(this.activeSessionId, this.activeTurnId);
+      await this.deps.tts?.cancel(this.activeTurnId);
+      this.deps.composer?.reset(this.activeTurnId);
+    }
+    await this.deps.playback?.stop("interrupt");
   }
 }

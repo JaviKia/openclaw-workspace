@@ -80,8 +80,20 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
   await orchestrator.handleEvent({ type: "speech.ended", ts: Date.now(), silenceMs: 850 });
   await orchestrator.handleEvent({ type: "stt.final", turnId, text: "hola que tal", ts: Date.now(), language: "es" });
   await orchestrator.handleEvent({ type: "backend.token", turnId, token: "Hola Javi, ", ts: Date.now() });
-  await orchestrator.handleEvent({ type: "backend.token", turnId, token: "qué tal.", ts: Date.now() });
-  await orchestrator.handleEvent({ type: "backend.completed", turnId, text: "Hola Javi, qué tal.", ts: Date.now() });
+  if (process.env.OPENCLAW_RUNTIME_TEST_INTERRUPT === "1") {
+    await orchestrator.handleEvent({ type: "speech.started", ts: Date.now() + 10 });
+    const interruptTurnId = crypto.randomUUID();
+    await orchestrator.handleEvent({ type: "backend.token", turnId, token: "esto no debe sonar", ts: Date.now() + 20 });
+    await orchestrator.handleEvent({ type: "backend.completed", turnId, text: "respuesta interrumpida", ts: Date.now() + 30 });
+    await orchestrator.handleEvent({ type: "stt.partial", turnId: interruptTurnId, text: "para", ts: Date.now() + 40 });
+    await orchestrator.handleEvent({ type: "speech.ended", ts: Date.now() + 50, silenceMs: 850 });
+    await orchestrator.handleEvent({ type: "stt.final", turnId: interruptTurnId, text: "para", ts: Date.now() + 60, language: "es" });
+    await orchestrator.handleEvent({ type: "backend.token", turnId: interruptTurnId, token: "Vale, paro.", ts: Date.now() + 70 });
+    await orchestrator.handleEvent({ type: "backend.completed", turnId: interruptTurnId, text: "Vale, paro.", ts: Date.now() + 80 });
+  } else {
+    await orchestrator.handleEvent({ type: "backend.token", turnId, token: "qué tal.", ts: Date.now() });
+    await orchestrator.handleEvent({ type: "backend.completed", turnId, text: "Hola Javi, qué tal.", ts: Date.now() });
+  }
 }
 
 console.log(`[runtime] final state: ${orchestrator.getState()}`);
