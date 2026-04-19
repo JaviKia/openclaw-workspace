@@ -40,13 +40,7 @@ let resolveAudioEnded: (() => void) | undefined;
 const audioEnded = new Promise<void>((resolve) => {
   resolveAudioEnded = resolve;
 });
-let resolveSettledListening: (() => void) | undefined;
-let waitingForSettledListening = false;
 let shouldWaitForSettledListening = false;
-let hasLeftListening = false;
-const settledListening = new Promise<void>((resolve) => {
-  resolveSettledListening = resolve;
-});
 
 audioInput.onFrame((frame) => {
   capturedFrames += 1;
@@ -73,16 +67,6 @@ audioInput.onEnded?.(() => {
 
 bus.subscribe(async (event) => {
   console.log(`[runtime] ${event.type}`, sanitizeEventForLog(event));
-
-  if (event.type === "state.changed") {
-    if (event.state !== "LISTENING") {
-      hasLeftListening = true;
-    }
-    if (waitingForSettledListening && hasLeftListening && event.state === "LISTENING") {
-      waitingForSettledListening = false;
-      resolveSettledListening?.();
-    }
-  }
 
   if (event.type === "stt.final") {
     await orchestrator.handleEvent(event);
@@ -152,14 +136,24 @@ if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
 }
 
 if (shouldWaitForSettledListening && orchestrator.getState() !== "LISTENING") {
-  waitingForSettledListening = true;
-  await Promise.race([
-    settledListening,
-    new Promise((resolve) => setTimeout(resolve, Number(process.env.OPENCLAW_RUNTIME_FINAL_WAIT_MS ?? 10000)))
-  ]);
+  await waitForState(
+    () => orchestrator.getState(),
+    "LISTENING",
+    Number(process.env.OPENCLAW_RUNTIME_FINAL_WAIT_MS ?? 30000)
+  );
 }
 
 console.log(`[runtime] final state: ${orchestrator.getState()}`);
+
+async function waitForState(getState: () => string, expected: string, timeoutMs: number): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (getState() === expected) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
 
 function sanitizeEventForLog(event: Parameters<typeof bus.subscribe>[0] extends (arg: infer T) => unknown ? T : never) {
   if (event.type !== "tts.audio.chunk") return event;
