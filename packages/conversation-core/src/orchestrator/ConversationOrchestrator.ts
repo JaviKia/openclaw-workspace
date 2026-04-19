@@ -1,5 +1,7 @@
+import type { BackendPort, PlaybackPort, ResponseComposerPort, SttPort, TtsPort } from "../contracts/Ports.js";
 import type { ConversationState, RuntimeConfig, RuntimeEvent, TurnContext } from "../contracts/Runtime.js";
 import type { EventBus } from "../events/EventBus.js";
+import { TurnPolicy } from "../policies/TurnPolicy.js";
 import { SessionManager } from "../session/SessionManager.js";
 
 export interface ConversationOrchestrator {
@@ -9,17 +11,28 @@ export interface ConversationOrchestrator {
   getState(): ConversationState;
 }
 
+export interface BasicConversationOrchestratorDeps {
+  bus: EventBus;
+  config: RuntimeConfig;
+  stt?: SttPort;
+  backend?: BackendPort;
+  composer?: ResponseComposerPort;
+  tts?: TtsPort;
+  playback?: PlaybackPort;
+}
+
 export class BasicConversationOrchestrator implements ConversationOrchestrator {
   private state: ConversationState = "IDLE";
   private activeSessionId?: string;
   private activeTurnId?: string;
   private readonly sessions: SessionManager;
+  private readonly turnPolicy: TurnPolicy;
 
-  constructor(
-    private readonly bus: EventBus,
-    private readonly config: RuntimeConfig
-  ) {
-    this.sessions = new SessionManager(config);
+  constructor(private readonly deps: BasicConversationOrchestratorDeps) {
+    this.sessions = new SessionManager(deps.config);
+    this.turnPolicy = new TurnPolicy(
+      deps.config.turnPolicy ?? { endSilenceMs: 800, interruptDebounceMs: 250 }
+    );
   }
 
   async startSession(sessionId = crypto.randomUUID()): Promise<string> {
@@ -49,6 +62,10 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
           startedAt: event.ts
         };
         this.sessions.addTurn(this.activeSessionId, turn);
+        await this.deps.stt?.startTurn({
+          turnId: this.activeTurnId,
+          sessionId: this.activeSessionId
+        });
         await this.transition("USER_SPEAKING");
         break;
       }
@@ -60,33 +77,55 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
         break;
       }
       case "speech.ended": {
-        if (this.state === "USER_SPEAKING") {
+        if (this.state === "USER_SPEAKING" && this.activeTurnId) {
           await this.transition("TRANSCRIBING");
+          await this.deps.stt?.stopTurn(this.activeTurnId);
         }
         break;
       }
       case "stt.final": {
         if (!this.activeSessionId) return;
-        this.sessions.updateTurn(this.activeSessionId, this.resolveTurnId(event.turnId), {
+        const turnId = this.resolveTurnId(event.turnId);
+        this.sessions.updateTurn(this.activeSessionId, turnId, {
           transcriptFinal: event.text,
           endedAt: event.ts
         });
         await this.transition("THINKING");
+        await this.deps.backend?.sendUserTurn({
+          sessionId: this.activeSessionId,
+          turnId,
+          text: event.text
+        });
         break;
       }
       case "backend.token": {
         if (this.state === "THINKING") {
           await this.transition("ASSISTANT_SPEAKING");
         }
+        if (this.deps.composer && this.deps.tts) {
+          for (const chunk of this.deps.composer.pushToken(event.turnId, event.token)) {
+            await this.deps.tts.speak(chunk);
+          }
+        }
         break;
       }
       case "speech.interrupted": {
-        if (this.state === "ASSISTANT_SPEAKING") {
+        if (this.state === "ASSISTANT_SPEAKING" && this.turnPolicy.shouldInterrupt(undefined, event.ts)) {
           await this.transition("INTERRUPTED");
+          if (this.activeSessionId && this.activeTurnId) {
+            await this.deps.backend?.cancelResponse(this.activeSessionId, this.activeTurnId);
+            await this.deps.tts?.cancel(this.activeTurnId);
+          }
+          await this.deps.playback?.stop("interrupt");
         }
         break;
       }
       case "backend.completed": {
+        if (this.deps.composer && this.deps.tts) {
+          for (const chunk of this.deps.composer.flush(event.turnId)) {
+            await this.deps.tts.speak(chunk);
+          }
+        }
         await this.transition("LISTENING");
         this.activeTurnId = undefined;
         break;
@@ -110,7 +149,7 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
 
   private async transition(next: ConversationState): Promise<void> {
     this.state = next;
-    await this.bus.publish({
+    await this.deps.bus.publish({
       type: "state.changed",
       state: next,
       ts: Date.now()

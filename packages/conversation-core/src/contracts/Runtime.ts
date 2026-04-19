@@ -40,6 +40,14 @@ export interface SpeakableChunk {
   isFinal?: boolean;
 }
 
+export interface TtsAudioChunk {
+  turnId: string;
+  chunkId: string;
+  audio: Buffer;
+  format: "pcm" | "mp3" | "opus";
+  sampleRate?: number;
+}
+
 export type RuntimeEvent =
   | { type: "speech.started"; ts: number }
   | { type: "speech.ended"; ts: number; silenceMs: number }
@@ -58,5 +66,9 @@ export interface RuntimeConfig {
   session: {
     maxTurns: number;
     maxContextChars: number;
+  };
+  turnPolicy?: {
+    endSilenceMs: number;
+    interruptDebounceMs: number;
   };
 }
