@@ -4,6 +4,7 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
+      "@kelex/audio-runtime": ["../audio-runtime/src/index.ts"],
       "@kelex/backend-openclaw": ["../backend-openclaw/src/index.ts"],
       "@kelex/conversation-core": ["../conversation-core/src/index.ts"],
       "@kelex/playback-runtime": ["../playback-runtime/src/index.ts"],

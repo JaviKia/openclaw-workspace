@@ -3,6 +3,7 @@ import {
   InMemoryEventBus,
   type RuntimeConfig
 } from "@kelex/conversation-core";
+import { createRuntimeAudioInput } from "./runtimeAudio.js";
 import { createRuntimeBackend } from "./runtimeBackend.js";
 import { createRuntimePlayback } from "./runtimePlayback.js";
 import { createRuntimeStt } from "./runtimeStt.js";
@@ -21,6 +22,7 @@ const config: RuntimeConfig = {
 };
 
 const bus = new InMemoryEventBus();
+const audioInput = createRuntimeAudioInput();
 const playback = createRuntimePlayback();
 const orchestrator = new BasicConversationOrchestrator({
   bus,
@@ -30,6 +32,18 @@ const orchestrator = new BasicConversationOrchestrator({
   composer: new StubResponseComposer(),
   tts: createRuntimeTts(bus),
   playback
+});
+
+let capturedFrames = 0;
+audioInput.onFrame((frame) => {
+  capturedFrames += 1;
+  if (capturedFrames <= 3) {
+    console.log("[audio] frame", {
+      bytes: frame.pcm.length,
+      sampleRate: frame.sampleRate,
+      channels: frame.channels
+    });
+  }
 });
 
 bus.subscribe(async (event) => {
@@ -43,6 +57,13 @@ const sessionId = await orchestrator.startSession();
 const turnId = crypto.randomUUID();
 
 console.log(`[runtime] session started: ${sessionId}`);
+
+if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
+  await audioInput.start();
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await audioInput.stop();
+  console.log(`[audio] captured frames: ${capturedFrames}`);
+}
 
 await orchestrator.handleEvent({ type: "speech.started", ts: Date.now() });
 await orchestrator.handleEvent({ type: "stt.partial", turnId, text: "hola", ts: Date.now() });
