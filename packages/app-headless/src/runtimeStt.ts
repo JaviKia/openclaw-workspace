@@ -45,7 +45,12 @@ function getDefaultTextReplacements(): Array<{ from: string; to: string }> {
     { from: "Ranta M T T S", to: "runtime TTS" },
     { from: "Ranta Emeteties", to: "runtime TTS" },
     { from: "rantime", to: "runtime" },
-    { from: "Rantime", to: "Runtime" }
+    { from: "Rantime", to: "Runtime" },
+    { from: "que lexquía", to: "Kelex Kia" },
+    { from: "Que lexquía", to: "Kelex Kia" },
+    { from: "que lex kia", to: "Kelex Kia" },
+    { from: "Ke lex kia", to: "Kelex Kia" },
+    { from: "4. 271", to: "4271" }
   ];
 }
 

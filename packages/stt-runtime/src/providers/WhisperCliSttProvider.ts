@@ -164,12 +164,30 @@ export class WhisperCliSttProvider implements SttPort {
       result = result.split(replacement.from).join(replacement.to);
     }
 
-    result = result.replace(/\s+([,.;:!?])/g, "$1");
-    result = result.replace(/([,.;:!?])(\S)/g, "$1 $2");
-    result = result.replace(/\s+/g, " ").trim();
+    result = normalizeKnownNames(result);
+    result = normalizeGroupedNumbers(result);
+    result = normalizePunctuation(result);
 
     return result;
   }
+}
+
+function normalizeKnownNames(text: string): string {
+  return text
+    .replace(/\b(?:que\s*lexqu[ií]a|que\s*lex\s*kia|ke\s*lex\s*kia|quelex\s*kia|kelex\s*kia)\b/gi, "Kelex Kia")
+    .replace(/\bque\s+lex\b/gi, "Kelex");
+}
+
+function normalizeGroupedNumbers(text: string): string {
+  return text.replace(/\b(\d)\.\s+(\d{3})\b/g, "$1$2");
+}
+
+function normalizePunctuation(text: string): string {
+  let result = text;
+  result = result.replace(/\s+([,.;:!?])/g, "$1");
+  result = result.replace(/([,.;:!?])(\S)/g, "$1 $2");
+  result = result.replace(/\s+/g, " ").trim();
+  return result;
 }
 
 function createWavFile(pcm: Buffer, sampleRate: number, channels: number): Buffer {
