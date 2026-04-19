@@ -2,6 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { EventBus, SpeakableChunk, TtsAudioChunk, TtsPort } from "@kelex/conversation-core";
+// @ts-expect-error OpenClaw bundle path has no published typings.
 import { t as buildMicrosoftSpeechProvider } from "/data/.npm-global/lib/node_modules/openclaw/dist/speech-provider-cOElwswQ.js";
 
 export interface MicrosoftTtsProviderOptions {

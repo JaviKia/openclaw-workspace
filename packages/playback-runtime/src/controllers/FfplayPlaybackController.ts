@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,7 +10,7 @@ export interface FfplayPlaybackControllerOptions {
 
 export class FfplayPlaybackController implements PlaybackPort {
   private readonly ffplayPath: string;
-  private currentProcess?: ChildProcessWithoutNullStreams;
+  private currentProcess?: ChildProcess;
   private currentTempDir?: string;
 
   constructor(options: FfplayPlaybackControllerOptions = {}) {

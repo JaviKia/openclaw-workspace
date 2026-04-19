@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import type { AudioFrame } from "@kelex/conversation-core";
 import type { AudioInputPort } from "@kelex/conversation-core";
 
@@ -16,7 +16,7 @@ export class PulseAudioInput implements AudioInputPort {
   private readonly sampleRate: number;
   private readonly channels: number;
   private readonly frameBytes: number;
-  private process?: ChildProcessWithoutNullStreams;
+  private process?: ChildProcess;
   private onFrameHandler?: (frame: AudioFrame) => void;
   private pending = Buffer.alloc(0);
 
@@ -44,7 +44,7 @@ export class PulseAudioInput implements AudioInputPort {
       stdio: ["ignore", "pipe", "pipe"]
     });
 
-    this.process.stdout.on("data", (chunk: Buffer) => {
+    this.process.stdout?.on("data", (chunk: Buffer) => {
       this.pending = Buffer.concat([this.pending, chunk]);
       while (this.pending.length >= this.frameBytes) {
         const frameBuffer = this.pending.subarray(0, this.frameBytes);

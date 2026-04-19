@@ -1,2 +1,4 @@
 .openclaw/workspace-state.json
 memory/.dreams/
+node_modules/
+dist/

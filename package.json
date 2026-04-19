@@ -8,6 +8,12 @@
   "scripts": {
     "build": "npm run -ws build",
     "check": "npm run -ws check",
-    "dev:headless": "npm --workspace @kelex/app-headless run dev"
+    "dev:headless": "npm --workspace @kelex/app-headless run dev",
+    "start:headless": "npm run dev:headless"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3"
   }
 }

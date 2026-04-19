@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "dev": "node --loader ts-node/esm src/main.ts"
+    "dev": "tsx src/main.ts"
   },
   "dependencies": {
     "@kelex/audio-runtime": "0.1.0",
@@ -16,9 +16,5 @@
     "@kelex/playback-runtime": "0.1.0",
     "@kelex/stt-runtime": "0.1.0",
     "@kelex/tts-runtime": "0.1.0"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
   }
 }

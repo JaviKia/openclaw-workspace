@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "@kelex/audio-runtime": ["../audio-runtime/src/index.ts"],
