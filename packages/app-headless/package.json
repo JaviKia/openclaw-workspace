@@ -1,0 +1,19 @@
+{
+  "name": "@kelex/app-headless",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "node --loader ts-node/esm src/main.ts"
+  },
+  "dependencies": {
+    "@kelex/conversation-core": "0.1.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

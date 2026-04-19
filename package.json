@@ -1,0 +1,13 @@
+{
+  "name": "openclaw-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run -ws build",
+    "check": "npm run -ws check",
+    "dev:headless": "npm --workspace @kelex/app-headless run dev"
+  }
+}
