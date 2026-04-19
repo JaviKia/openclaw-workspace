@@ -1,4 +1,4 @@
-import { EnergyVad, PulseAudioInput } from "@kelex/audio-runtime";
+import { EnergyVad, FfmpegAudioInput, getPulseAudioDiagnostics, PulseAudioInput } from "@kelex/audio-runtime";
 import type { AudioFrame, AudioInputPort, EventBus, VadPort } from "@kelex/conversation-core";
 
 class NullAudioInput implements AudioInputPort {
@@ -9,6 +9,21 @@ class NullAudioInput implements AudioInputPort {
 
 export function createRuntimeAudioInput(): AudioInputPort {
   if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
+    const backend = process.env.OPENCLAW_RUNTIME_AUDIO_BACKEND ?? "pulse";
+    if (backend === "ffmpeg") {
+      return new FfmpegAudioInput({
+        ffmpegPath: process.env.OPENCLAW_RUNTIME_FFMPEG_BIN ?? "/data/linuxbrew/.linuxbrew/bin/ffmpeg",
+        inputFormat: process.env.OPENCLAW_RUNTIME_AUDIO_INPUT_FORMAT === "file" ? "file" : "pulse",
+        source: process.env.OPENCLAW_RUNTIME_PULSE_SOURCE,
+        inputPath: process.env.OPENCLAW_RUNTIME_AUDIO_INPUT_FILE,
+        sampleRate: Number(process.env.OPENCLAW_RUNTIME_AUDIO_RATE ?? 16000),
+        channels: Number(process.env.OPENCLAW_RUNTIME_AUDIO_CHANNELS ?? 1),
+        onInputResolved: (input) => {
+          console.log("[audio] ffmpeg input", input);
+        }
+      });
+    }
+
     return new PulseAudioInput({
       parecPath: process.env.OPENCLAW_RUNTIME_PAREC_BIN ?? "/data/linuxbrew/.linuxbrew/bin/parec",
       pactlPath: process.env.OPENCLAW_RUNTIME_PACTL_BIN ?? "pactl",
@@ -21,6 +36,10 @@ export function createRuntimeAudioInput(): AudioInputPort {
     });
   }
   return new NullAudioInput();
+}
+
+export async function getRuntimeAudioDiagnostics() {
+  return getPulseAudioDiagnostics(process.env.OPENCLAW_RUNTIME_PACTL_BIN ?? "pactl");
 }
 
 export function createRuntimeVad(bus: EventBus): VadPort {

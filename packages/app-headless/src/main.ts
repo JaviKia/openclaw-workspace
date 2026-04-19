@@ -3,7 +3,7 @@ import {
   InMemoryEventBus,
   type RuntimeConfig
 } from "@kelex/conversation-core";
-import { createRuntimeAudioInput, createRuntimeVad } from "./runtimeAudio.js";
+import { createRuntimeAudioInput, createRuntimeVad, getRuntimeAudioDiagnostics } from "./runtimeAudio.js";
 import { createRuntimeBackend } from "./runtimeBackend.js";
 import { createRuntimePlayback } from "./runtimePlayback.js";
 import { createRuntimeStt } from "./runtimeStt.js";
@@ -69,6 +69,8 @@ const sessionId = await orchestrator.startSession();
 console.log(`[runtime] session started: ${sessionId}`);
 
 if (process.env.OPENCLAW_RUNTIME_REAL_AUDIO === "1") {
+  const diagnostics = await getRuntimeAudioDiagnostics();
+  console.log("[audio] diagnostics", diagnostics);
   await audioInput.start();
   await new Promise((resolve) => setTimeout(resolve, Number(process.env.OPENCLAW_RUNTIME_AUDIO_TEST_MS ?? 2000)));
   await audioInput.stop();

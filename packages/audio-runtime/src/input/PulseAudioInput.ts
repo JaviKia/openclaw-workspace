@@ -1,9 +1,7 @@
-import { execFile, spawn, type ChildProcess } from "node:child_process";
-import { promisify } from "node:util";
+import { spawn, type ChildProcess } from "node:child_process";
 import type { AudioFrame } from "@kelex/conversation-core";
 import type { AudioInputPort } from "@kelex/conversation-core";
-
-const execFileAsync = promisify(execFile);
+import { getPulseAudioDiagnostics, selectPreferredPulseSource } from "../diagnostics/PulseAudioDiagnostics.js";
 
 export interface PulseAudioInputOptions {
   parecPath?: string;
@@ -94,51 +92,10 @@ export class PulseAudioInput implements AudioInputPort {
       return this.requestedSource;
     }
 
-    const sources = await listPulseSources(this.pactlPath);
-    if (sources.length === 0) {
+    const diagnostics = await getPulseAudioDiagnostics(this.pactlPath);
+    if (diagnostics.availableSources.length === 0) {
       return "auto_null.monitor";
     }
-
-    const defaultSource = await getDefaultPulseSource(this.pactlPath);
-    const preferredInput = sources.find((source) => !source.endsWith(".monitor"));
-    if (preferredInput) {
-      return preferredInput;
-    }
-    if (defaultSource && sources.includes(defaultSource)) {
-      return defaultSource;
-    }
-    return sources[0] ?? "auto_null.monitor";
-  }
-}
-
-async function listPulseSources(pactlPath: string): Promise<string[]> {
-  try {
-    const { stdout } = await execFileAsync(pactlPath, ["list", "short", "sources"], {
-      timeout: 5000,
-      maxBuffer: 1024 * 1024
-    });
-    return stdout
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => line.split(/\s+/)[1])
-      .filter((value): value is string => Boolean(value));
-  } catch {
-    return [];
-  }
-}
-
-async function getDefaultPulseSource(pactlPath: string): Promise<string | undefined> {
-  try {
-    const { stdout } = await execFileAsync(pactlPath, ["info"], {
-      timeout: 5000,
-      maxBuffer: 1024 * 1024
-    });
-    const line = stdout
-      .split(/\r?\n/)
-      .find((entry) => entry.startsWith("Default Source:"));
-    return line?.split(":")[1]?.trim();
-  } catch {
-    return undefined;
+    return selectPreferredPulseSource(diagnostics.availableSources, diagnostics.defaultSource) ?? "auto_null.monitor";
   }
 }
