@@ -10,6 +10,7 @@
     "dev": "node --loader ts-node/esm src/main.ts"
   },
   "dependencies": {
+    "@kelex/backend-openclaw": "0.1.0",
     "@kelex/conversation-core": "0.1.0"
   },
   "devDependencies": {

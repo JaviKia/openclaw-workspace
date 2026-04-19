@@ -3,8 +3,8 @@ import {
   InMemoryEventBus,
   type RuntimeConfig
 } from "@kelex/conversation-core";
+import { createRuntimeBackend } from "./runtimeBackend.js";
 import {
-  StubBackendPort,
   StubPlaybackPort,
   StubResponseComposer,
   StubSttPort,
@@ -27,7 +27,7 @@ const orchestrator = new BasicConversationOrchestrator({
   bus,
   config,
   stt: new StubSttPort(),
-  backend: new StubBackendPort(),
+  backend: createRuntimeBackend(),
   composer: new StubResponseComposer(),
   tts: new StubTtsPort(),
   playback: new StubPlaybackPort()

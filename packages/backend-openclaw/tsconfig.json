@@ -4,7 +4,6 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@kelex/backend-openclaw": ["../backend-openclaw/src/index.ts"],
       "@kelex/conversation-core": ["../conversation-core/src/index.ts"]
     }
   },
