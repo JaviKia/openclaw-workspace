@@ -43,7 +43,9 @@ function getDefaultTextReplacements(): Array<{ from: string; to: string }> {
   return [
     { from: "Ranta MTTS", to: "runtime TTS" },
     { from: "Ranta M T T S", to: "runtime TTS" },
-    { from: "Ranta Emeteties", to: "runtime TTS" }
+    { from: "Ranta Emeteties", to: "runtime TTS" },
+    { from: "rantime", to: "runtime" },
+    { from: "Rantime", to: "Runtime" }
   ];
 }
 
