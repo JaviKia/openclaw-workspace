@@ -50,7 +50,8 @@ function getDefaultTextReplacements(): Array<{ from: string; to: string }> {
     { from: "Que lexquía", to: "Kelex Kia" },
     { from: "que lex kia", to: "Kelex Kia" },
     { from: "Ke lex kia", to: "Kelex Kia" },
-    { from: "4. 271", to: "4271" }
+    { from: "4. 271", to: "4271" },
+    { from: "OpenClark", to: "OpenClaw" }
   ];
 }
 

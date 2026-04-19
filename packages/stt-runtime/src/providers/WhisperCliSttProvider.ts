@@ -165,6 +165,7 @@ export class WhisperCliSttProvider implements SttPort {
     }
 
     result = normalizeKnownNames(result);
+    result = normalizeKnownProducts(result);
     result = normalizeGroupedNumbers(result);
     result = normalizePunctuation(result);
 
@@ -176,6 +177,12 @@ function normalizeKnownNames(text: string): string {
   return text
     .replace(/\b(?:que\s*lexqu[ií]a|que\s*lex\s*kia|ke\s*lex\s*kia|quelex\s*kia|kelex\s*kia)\b/gi, "Kelex Kia")
     .replace(/\bque\s+lex\b/gi, "Kelex");
+}
+
+function normalizeKnownProducts(text: string): string {
+  return text
+    .replace(/\bOpenClark\b/gi, "OpenClaw")
+    .replace(/\bOpen Claw\b/gi, "OpenClaw");
 }
 
 function normalizeGroupedNumbers(text: string): string {
