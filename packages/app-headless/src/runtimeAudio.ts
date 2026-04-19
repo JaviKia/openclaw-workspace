@@ -1,5 +1,5 @@
-import { PulseAudioInput } from "@kelex/audio-runtime";
-import type { AudioFrame, AudioInputPort } from "@kelex/conversation-core";
+import { EnergyVad, PulseAudioInput } from "@kelex/audio-runtime";
+import type { AudioFrame, AudioInputPort, EventBus, VadPort } from "@kelex/conversation-core";
 
 class NullAudioInput implements AudioInputPort {
   onFrame(_cb: (frame: AudioFrame) => void): void {}
@@ -17,4 +17,13 @@ export function createRuntimeAudioInput(): AudioInputPort {
     });
   }
   return new NullAudioInput();
+}
+
+export function createRuntimeVad(bus: EventBus): VadPort {
+  return new EnergyVad({
+    bus,
+    startThreshold: Number(process.env.OPENCLAW_RUNTIME_VAD_START ?? 0.015),
+    endThreshold: Number(process.env.OPENCLAW_RUNTIME_VAD_END ?? 0.008),
+    endSilenceMs: Number(process.env.OPENCLAW_RUNTIME_VAD_SILENCE_MS ?? 800)
+  });
 }

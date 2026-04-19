@@ -1,5 +1,5 @@
 import type { BackendPort, PlaybackPort, ResponseComposerPort, SttPort, TtsPort } from "../contracts/Ports.js";
-import type { ConversationState, RuntimeConfig, RuntimeEvent, TurnContext } from "../contracts/Runtime.js";
+import type { AudioFrame, ConversationState, RuntimeConfig, RuntimeEvent, TurnContext } from "../contracts/Runtime.js";
 import type { EventBus } from "../events/EventBus.js";
 import { TurnPolicy } from "../policies/TurnPolicy.js";
 import { SessionManager } from "../session/SessionManager.js";
@@ -7,6 +7,7 @@ import { SessionManager } from "../session/SessionManager.js";
 export interface ConversationOrchestrator {
   startSession(sessionId?: string): Promise<string>;
   stopSession(sessionId: string): Promise<void>;
+  handleAudioFrame(frame: AudioFrame): Promise<void>;
   handleEvent(event: RuntimeEvent): Promise<void>;
   getState(): ConversationState;
 }
@@ -45,6 +46,11 @@ export class BasicConversationOrchestrator implements ConversationOrchestrator {
   async stopSession(_sessionId: string): Promise<void> {
     this.activeTurnId = undefined;
     await this.transition("IDLE");
+  }
+
+  async handleAudioFrame(frame: AudioFrame): Promise<void> {
+    if (!this.activeTurnId || this.state !== "USER_SPEAKING") return;
+    await this.deps.stt?.pushAudio(this.activeTurnId, frame);
   }
 
   getState(): ConversationState {
