@@ -13,7 +13,9 @@
     "runtime:test:prepare": "tsx scripts/runtime-tests/ensure-samples.ts",
     "runtime:test:sample1": "./scripts/runtime-tests/run-sample-1.sh",
     "runtime:test:sample2": "./scripts/runtime-tests/run-sample-2.sh",
-    "runtime:test:interrupt": "./scripts/runtime-tests/run-interrupt.sh"
+    "runtime:test:interrupt": "./scripts/runtime-tests/run-interrupt.sh",
+    "runtime:profile:e2e:sample1": "./scripts/runtime-tests/run-profile.sh ./profiles/runtime/headless-voice-e2e.env ./fixtures/runtime-audio/sample-1-es.mp3",
+    "runtime:profile:e2e:sample2": "./scripts/runtime-tests/run-profile.sh ./profiles/runtime/headless-voice-e2e.env ./fixtures/runtime-audio/sample-2-es.mp3"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
