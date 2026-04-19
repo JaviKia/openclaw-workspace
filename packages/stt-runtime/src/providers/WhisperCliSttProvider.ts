@@ -25,6 +25,7 @@ export interface WhisperCliSttProviderOptions {
   timeoutMs?: number;
   ffmpegAudioFilter?: string;
   ffmpegExtraArgs?: string[];
+  textReplacements?: Array<{ from: string; to: string }>;
 }
 
 export class WhisperCliSttProvider implements SttPort {
@@ -37,6 +38,7 @@ export class WhisperCliSttProvider implements SttPort {
   private readonly timeoutMs: number;
   private readonly ffmpegAudioFilter?: string;
   private readonly ffmpegExtraArgs: string[];
+  private readonly textReplacements: Array<{ from: string; to: string }>;
 
   constructor(options: WhisperCliSttProviderOptions) {
     this.bus = options.bus;
@@ -47,6 +49,7 @@ export class WhisperCliSttProvider implements SttPort {
     this.timeoutMs = options.timeoutMs ?? 120_000;
     this.ffmpegAudioFilter = options.ffmpegAudioFilter;
     this.ffmpegExtraArgs = options.ffmpegExtraArgs ?? [];
+    this.textReplacements = options.textReplacements ?? [];
   }
 
   async startTurn(input: { turnId: string; sessionId: string; language?: string }): Promise<void> {
@@ -125,7 +128,7 @@ export class WhisperCliSttProvider implements SttPort {
         maxBuffer: 1024 * 1024 * 10
       });
       const text = await readFile(`${outputBase}.txt`, "utf8");
-      return text.trim();
+      return this.postProcessTranscript(text);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -151,6 +154,21 @@ export class WhisperCliSttProvider implements SttPort {
       args.push("-af", this.ffmpegAudioFilter);
     }
     return args;
+  }
+
+  private postProcessTranscript(text: string): string {
+    let result = text.replace(/\s+/g, " ").trim();
+
+    for (const replacement of this.textReplacements) {
+      if (!replacement.from) continue;
+      result = result.split(replacement.from).join(replacement.to);
+    }
+
+    result = result.replace(/\s+([,.;:!?])/g, "$1");
+    result = result.replace(/([,.;:!?])(\S)/g, "$1 $2");
+    result = result.replace(/\s+/g, " ").trim();
+
+    return result;
   }
 }
 

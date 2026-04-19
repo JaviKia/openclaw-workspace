@@ -14,8 +14,24 @@ export function createRuntimeStt(bus: EventBus): SttPort {
       ffmpegExtraArgs: (process.env.OPENCLAW_RUNTIME_STT_FFMPEG_EXTRA_ARGS ?? "")
         .split(" ")
         .map((value) => value.trim())
-        .filter(Boolean)
+        .filter(Boolean),
+      textReplacements: parseTextReplacements(process.env.OPENCLAW_RUNTIME_STT_TEXT_REPLACEMENTS ?? "")
     });
   }
   return new StubSttPort();
+}
+
+function parseTextReplacements(input: string): Array<{ from: string; to: string }> {
+  return input
+    .split("||")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [from, to] = entry.split("=>");
+      return {
+        from: from?.trim() ?? "",
+        to: to?.trim() ?? ""
+      };
+    })
+    .filter((entry) => entry.from.length > 0);
 }
