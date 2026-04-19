@@ -5,7 +5,8 @@
     "baseUrl": ".",
     "paths": {
       "@kelex/backend-openclaw": ["../backend-openclaw/src/index.ts"],
-      "@kelex/conversation-core": ["../conversation-core/src/index.ts"]
+      "@kelex/conversation-core": ["../conversation-core/src/index.ts"],
+      "@kelex/stt-runtime": ["../stt-runtime/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"]

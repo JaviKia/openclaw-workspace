@@ -4,10 +4,10 @@ import {
   type RuntimeConfig
 } from "@kelex/conversation-core";
 import { createRuntimeBackend } from "./runtimeBackend.js";
+import { createRuntimeStt } from "./runtimeStt.js";
 import {
   StubPlaybackPort,
   StubResponseComposer,
-  StubSttPort,
   StubTtsPort
 } from "./stubs.js";
 
@@ -26,7 +26,7 @@ const bus = new InMemoryEventBus();
 const orchestrator = new BasicConversationOrchestrator({
   bus,
   config,
-  stt: new StubSttPort(),
+  stt: createRuntimeStt(bus),
   backend: createRuntimeBackend(),
   composer: new StubResponseComposer(),
   tts: new StubTtsPort(),
@@ -35,6 +35,9 @@ const orchestrator = new BasicConversationOrchestrator({
 
 bus.subscribe(async (event) => {
   console.log(`[runtime] ${event.type}`, event);
+  if (event.type === "stt.final") {
+    await orchestrator.handleEvent(event);
+  }
 });
 
 const sessionId = await orchestrator.startSession();
