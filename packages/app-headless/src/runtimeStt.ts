@@ -9,7 +9,12 @@ export function createRuntimeStt(bus: EventBus): SttPort {
       binaryPath: process.env.OPENCLAW_RUNTIME_WHISPER_BIN ?? "/data/linuxbrew/.linuxbrew/bin/whisper-cli",
       ffmpegPath: process.env.OPENCLAW_RUNTIME_FFMPEG_BIN ?? "/data/linuxbrew/.linuxbrew/bin/ffmpeg",
       modelPath: process.env.OPENCLAW_RUNTIME_WHISPER_MODEL ?? "/data/.openclaw/models/whisper/ggml-base.bin",
-      defaultLanguage: process.env.OPENCLAW_RUNTIME_STT_LANG ?? "auto"
+      defaultLanguage: process.env.OPENCLAW_RUNTIME_STT_LANG ?? "auto",
+      ffmpegAudioFilter: process.env.OPENCLAW_RUNTIME_STT_FFMPEG_FILTER,
+      ffmpegExtraArgs: (process.env.OPENCLAW_RUNTIME_STT_FFMPEG_EXTRA_ARGS ?? "")
+        .split(" ")
+        .map((value) => value.trim())
+        .filter(Boolean)
     });
   }
   return new StubSttPort();

@@ -23,6 +23,8 @@ export interface WhisperCliSttProviderOptions {
   modelPath?: string;
   defaultLanguage?: string;
   timeoutMs?: number;
+  ffmpegAudioFilter?: string;
+  ffmpegExtraArgs?: string[];
 }
 
 export class WhisperCliSttProvider implements SttPort {
@@ -33,6 +35,8 @@ export class WhisperCliSttProvider implements SttPort {
   private readonly modelPath: string;
   private readonly defaultLanguage: string;
   private readonly timeoutMs: number;
+  private readonly ffmpegAudioFilter?: string;
+  private readonly ffmpegExtraArgs: string[];
 
   constructor(options: WhisperCliSttProviderOptions) {
     this.bus = options.bus;
@@ -41,6 +45,8 @@ export class WhisperCliSttProvider implements SttPort {
     this.modelPath = options.modelPath ?? "/data/.openclaw/models/whisper/ggml-base.bin";
     this.defaultLanguage = options.defaultLanguage ?? "auto";
     this.timeoutMs = options.timeoutMs ?? 120_000;
+    this.ffmpegAudioFilter = options.ffmpegAudioFilter;
+    this.ffmpegExtraArgs = options.ffmpegExtraArgs ?? [];
   }
 
   async startTurn(input: { turnId: string; sessionId: string; language?: string }): Promise<void> {
@@ -85,10 +91,11 @@ export class WhisperCliSttProvider implements SttPort {
     const normalizedPath = join(tempDir, `input.normalized.wav`);
     const outputBase = join(tempDir, `output`);
     try {
-      await execFileAsync(this.ffmpegPath, [
+      const ffmpegArgs = [
         "-y",
         "-i",
         inputPath,
+        ...this.buildFfmpegProcessingArgs(),
         "-ac",
         "1",
         "-ar",
@@ -96,7 +103,8 @@ export class WhisperCliSttProvider implements SttPort {
         "-c:a",
         "pcm_s16le",
         normalizedPath
-      ], {
+      ];
+      await execFileAsync(this.ffmpegPath, ffmpegArgs, {
         timeout: this.timeoutMs,
         maxBuffer: 1024 * 1024 * 10
       });
@@ -135,6 +143,14 @@ export class WhisperCliSttProvider implements SttPort {
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
+  }
+
+  private buildFfmpegProcessingArgs(): string[] {
+    const args = [...this.ffmpegExtraArgs];
+    if (this.ffmpegAudioFilter && this.ffmpegAudioFilter.trim()) {
+      args.push("-af", this.ffmpegAudioFilter);
+    }
+    return args;
   }
 }
 
