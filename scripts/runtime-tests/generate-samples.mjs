@@ -23,19 +23,19 @@ const samples = [
   },
   {
     id: 7,
-    text: 'Hola Javi. La reunión es el martes 23 a las 19 y 45. El servidor principal responde por el puerto 18789. Quiero ver si fechas, horas y números técnicos salen limpios.'
+    text: 'Hola Javi. La reunión es el martes 23 a las 19:45. El puerto principal es 18789. Quiero comprobar fechas y números.'
   },
   {
     id: 8,
-    text: 'Hola Javi. OpenClaw, Whisper y runtime TTS tienen que convivir bien. Esta muestra mezcla producto, herramienta y una frase final corta para comprobar estabilidad.'
+    text: 'Hola Javi. OpenClaw y runtime TTS tienen que convivir bien. Esta muestra mezcla producto y una frase final corta para comprobar estabilidad.'
   },
   {
     id: 9,
-    text: 'Hola Javi. Si intercalo comas, una pausa media y luego otra idea, el sistema no debería perder el hilo. También quiero verificar que la última palabra llegue entera.'
+    text: 'Hola Javi. Si hago una pausa breve, y luego sigo, el sistema no debería perder el hilo. También quiero verificar el cierre final completo.'
   },
   {
     id: 10,
-    text: 'Hola Javi. Soy Kelex Kia y esta es la muestra diez. Quiero validar nombres propios, números, siglas, ritmo y cierre de frase en una sola pasada. Si esto sale limpio, la base del runtime ya será bastante decente.'
+    text: 'Hola Javi. Soy Kelex Kia. OpenClaw responde por el puerto 18789 y el runtime TTS sigue estable. Si esta muestra entra limpia, la base del runtime ya es bastante decente.'
   }
 ];
 

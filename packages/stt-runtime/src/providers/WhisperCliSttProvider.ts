@@ -186,7 +186,11 @@ function normalizeKnownProducts(text: string): string {
 }
 
 function normalizeGroupedNumbers(text: string): string {
-  return text.replace(/\b(\d)\.\s+(\d{3})\b/g, "$1$2");
+  let result = text;
+  while (/(\d)\.\s+(\d)/.test(result)) {
+    result = result.replace(/(\d)\.\s+(\d)/g, "$1$2");
+  }
+  return result;
 }
 
 function normalizePunctuation(text: string): string {

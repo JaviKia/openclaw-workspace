@@ -16,7 +16,7 @@
 - Formato de entrega preferido: directo, práctico y accionable
 - Idioma por defecto: castellano, tanto escrito como hablado
 - Cambio de idioma: solo cambiar a inglés cuando Javi diga "switch to English"; volver a español cuando diga "volvemos a castellano"
-- Cuando el contexto de sesión llegue a ~50%, hacer autocompactado y push al repo para consolidar memoria y cambios útiles
+- En cada ejecución, comprobar el nivel de contexto actual. Si está por encima de ~50%, hacer autocompactado antes de seguir trabajando, para reducir coste y consolidar memoria y cambios útiles.
 
 ## Contexto duradero de Javi
 
