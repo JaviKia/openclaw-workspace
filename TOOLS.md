@@ -108,3 +108,4 @@ Regla:
 - Decidir si habrá `.env` canónico para secretos del entorno
 - Si la UI deja de ser local, configurar `gateway.trustedProxies`
 - Valorar respuesta por voz, no solo entrada por voz
+- Para mover la web de voz a Hostinger, usar `docs/voice-web-hostinger.md` y `scripts/deploy/hostinger-voice-web-bootstrap.sh`; recordar que allí no basta el frontend, hace falta también OpenClaw + Whisper + ffmpeg + config real
