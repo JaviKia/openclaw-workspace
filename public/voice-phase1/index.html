@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelex Voice Web</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #0b1220; color: #e5eefc; }
+      main { max-width: 860px; margin: 0 auto; padding: 24px; }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      p { color: #a8b7d1; }
+      .card { background: #131c2f; border: 1px solid #25314a; border-radius: 16px; padding: 16px; margin-top: 16px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      button { border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+      #recordBtn { background: #5eead4; color: #08131d; }
+      #resetBtn { background: #1f2937; color: #dbe7fb; border: 1px solid #334155; }
+      #status { font-weight: 700; color: #5eead4; }
+      .log { display: grid; gap: 12px; }
+      .bubble { padding: 12px 14px; border-radius: 14px; line-height: 1.4; white-space: pre-wrap; }
+      .user { background: #1b355f; }
+      .assistant { background: #173825; }
+      audio { width: 100%; margin-top: 8px; }
+      .small { font-size: 13px; color: #93a4c2; }
+      code { background: #0f172a; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Kelex Voice Web, fase 1</h1>
+      <p>Prueba privada push-to-talk desde navegador. El micro y el audio son los de tu portátil, el backend vive en el VPS.</p>
+
+      <div class="card">
+        <div class="row">
+          <button id="recordBtn">🎙️ Mantener pulsado para hablar</button>
+          <button id="resetBtn">Reiniciar sesión</button>
+          <span id="status">Listo</span>
+        </div>
+        <p class="small">Ábrela por <code>http://localhost:4173</code> usando túnel SSH para tener micrófono sin publicar nada.</p>
+      </div>
+
+      <div class="card">
+        <strong>Conversación</strong>
+        <div id="log" class="log" style="margin-top: 12px;"></div>
+      </div>
+    </main>
+
+    <script>
+      const logEl = document.getElementById('log');
+      const recordBtn = document.getElementById('recordBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const statusEl = document.getElementById('status');
+      let mediaRecorder;
+      let stream;
+      let chunks = [];
+      let isRecording = false;
+      const browserSessionId = localStorage.getItem('kelex-web-session-id') || crypto.randomUUID();
+      localStorage.setItem('kelex-web-session-id', browserSessionId);
+
+      function setStatus(text) { statusEl.textContent = text; }
+      function addBubble(kind, text, audioUrl) {
+        const wrap = document.createElement('div');
+        wrap.className = `bubble ${kind}`;
+        wrap.textContent = text;
+        if (audioUrl) {
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = audioUrl;
+          wrap.appendChild(audio);
+          audio.play().catch(() => {});
+        }
+        logEl.appendChild(wrap);
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+      function pickMimeType() {
+        const preferred = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
+        return preferred.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+      }
+      async function ensureRecorder() {
+        if (mediaRecorder) return;
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream, { mimeType: pickMimeType() });
+        mediaRecorder.addEventListener('dataavailable', (event) => { if (event.data.size > 0) chunks.push(event.data); });
+        mediaRecorder.addEventListener('stop', sendTurn);
+      }
+      async function startRecording() {
+        if (isRecording) return;
+        await ensureRecorder();
+        chunks = [];
+        mediaRecorder.start();
+        isRecording = true;
+        setStatus('Escuchando...');
+      }
+      function stopRecording() {
+        if (!isRecording) return;
+        isRecording = false;
+        setStatus('Procesando...');
+        mediaRecorder.stop();
+      }
+      async function sendTurn() {
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        addBubble('user', '⏺️ Audio enviado');
+        try {
+          const response = await fetch('/api/turn', {
+            method: 'POST',
+            headers: { 'content-type': blob.type, 'x-session-id': browserSessionId },
+            body: blob
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'request failed');
+          addBubble('user', data.transcript || '(sin transcripción)');
+          let audioUrl;
+          if (data.audioBase64) {
+            const bytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
+            const audioBlob = new Blob([bytes], { type: data.audioMimeType || 'audio/mpeg' });
+            audioUrl = URL.createObjectURL(audioBlob);
+          }
+          addBubble('assistant', data.replyText || '(sin respuesta)', audioUrl);
+          setStatus('Listo');
+        } catch (error) {
+          console.error(error);
+          addBubble('assistant', `Error: ${error.message || error}`);
+          setStatus('Error');
+        }
+      }
+      ['mousedown', 'touchstart'].forEach((e) => recordBtn.addEventListener(e, (event) => { event.preventDefault(); startRecording().catch((error) => { console.error(error); setStatus('No pude abrir el micro'); }); }));
+      ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach((e) => recordBtn.addEventListener(e, (event) => { event.preventDefault(); stopRecording(); }));
+      resetBtn.addEventListener('click', async () => {
+        await fetch('/api/reset', { method: 'POST', headers: { 'x-session-id': browserSessionId } }).catch(() => {});
+        logEl.innerHTML = '';
+        setStatus('Sesión reiniciada');
+      });
+    </script>
+  </body>
+</html>

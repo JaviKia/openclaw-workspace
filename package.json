@@ -10,6 +10,8 @@
     "check": "npm run -ws check",
     "dev:headless": "npm --workspace @kelex/app-headless run dev",
     "start:headless": "npm run dev:headless",
+    "dev:web": "npm run build && node scripts/web-phase1/server.mjs",
+    "start:web": "npm run dev:web",
     "runtime:test:prepare": "tsx scripts/runtime-tests/ensure-samples.ts",
     "runtime:test:sample1": "./scripts/runtime-tests/run-sample-1.sh",
     "runtime:test:sample2": "./scripts/runtime-tests/run-sample-2.sh",
