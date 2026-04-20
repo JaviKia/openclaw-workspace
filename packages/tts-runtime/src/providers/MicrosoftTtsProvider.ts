@@ -1,9 +1,21 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import type { EventBus, SpeakableChunk, TtsAudioChunk, TtsPort } from "@kelex/conversation-core";
-// @ts-expect-error OpenClaw bundle path has no published typings.
-import { t as buildMicrosoftSpeechProvider } from "/data/.npm-global/lib/node_modules/openclaw/dist/speech-provider-cOElwswQ.js";
+
+type MicrosoftSpeechProviderFactory = () => {
+  synthesize(input: {
+    text: string;
+    providerConfig: {
+      voice: string;
+      outputFormat: string;
+      enabled: boolean;
+    };
+    providerOverrides: Record<string, unknown>;
+    timeoutMs: number;
+  }): Promise<{ audioBuffer: Buffer }>;
+};
 
 export interface MicrosoftTtsProviderOptions {
   bus: EventBus;
@@ -15,7 +27,7 @@ export class MicrosoftTtsProvider implements TtsPort {
   private readonly bus: EventBus;
   private readonly voice: string;
   private readonly outputFormat: string;
-  private readonly provider = buildMicrosoftSpeechProvider();
+  private readonly providerPromise = loadMicrosoftSpeechProvider();
 
   constructor(options: MicrosoftTtsProviderOptions) {
     this.bus = options.bus;
@@ -24,7 +36,8 @@ export class MicrosoftTtsProvider implements TtsPort {
   }
 
   async speak(chunk: SpeakableChunk): Promise<void> {
-    const result = await this.provider.synthesize({
+    const provider = await this.providerPromise;
+    const result = await provider.synthesize({
       text: chunk.text,
       providerConfig: {
         voice: this.voice,
@@ -53,7 +66,8 @@ export class MicrosoftTtsProvider implements TtsPort {
   async cancel(_turnId: string): Promise<void> {}
 
   async synthesizeToFile(text: string, outPath: string): Promise<void> {
-    const result = await this.provider.synthesize({
+    const provider = await this.providerPromise;
+    const result = await provider.synthesize({
       text,
       providerConfig: {
         voice: this.voice,
@@ -76,4 +90,42 @@ export class MicrosoftTtsProvider implements TtsPort {
       await rm(tempDir, { recursive: true, force: true });
     }
   }
+}
+
+async function loadMicrosoftSpeechProvider(): Promise<ReturnType<MicrosoftSpeechProviderFactory>> {
+  const modulePath = await resolveSpeechProviderModulePath();
+  const loaded = (await import(pathToFileURL(modulePath).href)) as { t?: MicrosoftSpeechProviderFactory };
+  if (typeof loaded.t !== "function") {
+    throw new Error(`Invalid OpenClaw speech provider module: ${modulePath}`);
+  }
+  return loaded.t();
+}
+
+async function resolveSpeechProviderModulePath(): Promise<string> {
+  const explicitPath = process.env.OPENCLAW_SPEECH_PROVIDER_MODULE;
+  if (explicitPath) {
+    return explicitPath;
+  }
+
+  const candidateDistDirs = [
+    process.env.OPENCLAW_DIST_DIR,
+    "/data/.npm-global/lib/node_modules/openclaw/dist",
+    "/usr/local/lib/node_modules/openclaw/dist"
+  ].filter((value): value is string => Boolean(value));
+
+  for (const distDir of candidateDistDirs) {
+    try {
+      const entries = await readdir(distDir);
+      const match = entries.find((entry) => /^speech-provider-.*\.js$/.test(entry));
+      if (match) {
+        return join(distDir, match);
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    "OpenClaw speech provider bundle not found. Set OPENCLAW_DIST_DIR or OPENCLAW_SPEECH_PROVIDER_MODULE."
+  );
 }
