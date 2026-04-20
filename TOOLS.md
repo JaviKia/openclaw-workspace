@@ -29,7 +29,8 @@ Regla:
 
 ## CLI y utilidades
 
-- OpenClaw CLI: `/usr/local/bin/openclaw`
+- OpenClaw CLI en PATH: `/usr/local/bin/openclaw`
+- OpenClaw CLI bueno/actual: `/data/.npm-global/bin/openclaw`
 - Git: `/usr/bin/git`
 - Homebrew: `/data/linuxbrew/.linuxbrew/bin/brew`
 - `ffmpeg`: `/data/linuxbrew/.linuxbrew/bin/ffmpeg`
@@ -77,8 +78,23 @@ Regla:
   - modelo actual `ggml-base.bin`
   - auto-TTS activado en modo `inbound`
   - proveedor TTS configurado: `microsoft`
-  - voz configurada: `en-US-AvaMultilingualNeural`
+  - voz preferida actual: `en-US-BrianMultilingualNeural`
 - Antes de dar una config por cerrada, verificar con logs, diff o prueba real.
+- En cada ejecución, antes de seguir trabajando, comprobar el contexto actual. Si supera ~50%, compactar primero.
+
+## Flujo de compactación manual
+
+- Helper local: `/data/.openclaw/workspace/scripts/session-tools/compact-session.mjs`
+- Doc rápida: `/data/.openclaw/workspace/docs/session-compaction.md`
+- Regla: usar el binario bueno `/data/.npm-global/bin/openclaw`, no el de `/usr/local/bin/openclaw`, para llamar a `sessions.compact`.
+- Comandos rápidos:
+  - `npm run compact:main`
+  - `npm run compact:runtime:e2e`
+  - `npm run compact:web`
+- Flujo esperado por defecto:
+  1. Ejecutar `session_status` y mirar `% de contexto`
+  2. Si `> ~50%`, correr `npm run compact:main` antes de cualquier trabajo adicional
+  3. Después seguir con la tarea normal
 
 ## Stack y runtime
 
